@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>University Digital Library</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="app">
+
+<!-- App bar -->
+<header class="appbar" id="appbar" hidden>
+  <div class="wrap">
+    <button class="brand" data-go="home" aria-label="University Digital Library, go to dashboard">
+      <span class="brand-mark" aria-hidden="true"></span>
+      UniLibrary
+    </button>
+    <nav class="nav" aria-label="Main">
+      <button data-go="dashboard" id="nav-dashboard">Dashboard</button>
+      <button data-go="search" id="nav-search">Search books</button>
+    </nav>
+    <div class="user" id="userBox">
+      <span class="avatar" id="avatar" aria-hidden="true">GG</span>
+      <span class="user-name" id="userName">GROUP G</span>
+      <button class="btn btn-ghost" id="logout">Log out</button>
+    </div>
+    <div class="user" id="guestBox" hidden>
+      <span class="pill info">Browsing as guest</span>
+      <button class="btn btn-secondary" data-go="login" style="min-height:40px;padding:6px 16px">Log in</button>
+      <button class="btn btn-primary" data-go="register" style="min-height:40px;padding:6px 16px">Create account</button>
+    </div>
+  </div>
+</header>
+
+<!-- Journey strip -->
+<div class="journey" id="journey" hidden>
+  <div class="wrap">
+    <ol aria-label="Borrowing progress">
+      <li data-step="search"><span class="dot">1</span><span class="lbl">Find a book</span></li>
+      <li data-step="details"><span class="dot">2</span><span class="lbl">Check details</span></li>
+      <li data-step="request"><span class="dot">3</span><span class="lbl">Request to borrow</span></li>
+      <li data-step="confirm"><span class="dot">4</span><span class="lbl">Confirmation</span></li>
+    </ol>
+  </div>
+</div>
+
+<main id="main" tabindex="-1">
+
+<!-- Register -->
+<section data-view="register" class="auth" hidden aria-labelledby="reg-h">
+  <form class="card raised auth-card" id="regForm" novalidate>
+    <div class="auth-top"><button type="button" class="link-btn" data-go="login">&larr; Back to log in</button></div>
+    <div>
+      <h1 id="reg-h" style="font-size:1.7rem">Create your library account</h1>
+      <p class="muted" style="margin-top:6px">For UICT students. We send a link to your university email to confirm it is you.</p>
+    </div>
+    <div class="summary-err" id="regErr" role="alert" tabindex="-1" hidden></div>
+    <div class="field" data-field="rName">
+      <label for="rName">Full name <span class="req" aria-hidden="true">*</span></label>
+      <input class="input" id="rName" autocomplete="name" aria-describedby="rName-err">
+      <p class="err" id="rName-err"></p>
+    </div>
+    <div class="field" data-field="rReg">
+      <label for="rReg">Registration number <span class="req" aria-hidden="true">*</span></label>
+      <input class="input" id="rReg" placeholder="e.g. 2025/DSWE/DAY/0036/G" aria-describedby="rReg-hint rReg-err">
+      <p class="hint" id="rReg-hint">We check it against the student records.</p>
+      <p class="err" id="rReg-err"></p>
+    </div>
+    <div class="field" data-field="rEmail">
+      <label for="rEmail">University email <span class="req" aria-hidden="true">*</span></label>
+      <input class="input" id="rEmail" type="email" autocomplete="email" placeholder="name@student.uict.ac.ug" aria-describedby="rEmail-err">
+      <p class="err" id="rEmail-err"></p>
+    </div>
+    <div class="field" data-field="rPass">
+      <label for="rPass">Password <span class="req" aria-hidden="true">*</span></label>
+      <input class="input" id="rPass" type="password" data-pw autocomplete="new-password" aria-describedby="rPass-hint rPass-err">
+      <p class="hint" id="rPass-hint">At least 8 characters, with a letter and a number.</p>
+      <p class="err" id="rPass-err"></p>
+    </div>
+    <div class="field" data-field="rConfirm">
+      <label for="rConfirm">Confirm password <span class="req" aria-hidden="true">*</span></label>
+      <input class="input" id="rConfirm" type="password" data-pw autocomplete="new-password" aria-describedby="rConfirm-err">
+      <p class="err" id="rConfirm-err"></p>
+    </div>
+    <label class="check"><input type="checkbox" class="showpw"><span>Show passwords</span></label>
+    <button class="btn btn-primary btn-block" type="submit">Create account</button>
+    <p class="muted" style="font-size:.9rem">Not a UICT student? Ask the library desk to set up a visitor account.</p>
+  </form>
+</section>
+
+<!-- Verify email -->
+<section data-view="verify" class="auth" hidden aria-labelledby="ver-h">
+  <div class="card raised auth-card" style="text-align:center;align-items:center">
+    <div class="tick" style="background:#E8EDF4"><svg viewBox="0 0 24 24" aria-hidden="true" style="stroke:#1F3A68"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 7l8.5 6 8.5-6"/></svg></div>
+    <h1 id="ver-h" style="font-size:1.7rem">Check your email</h1>
+    <p class="muted">We sent a verification link to <b id="verEmail" style="color:#121C2E"></b>. Open it to finish creating your account.</p>
+    <button class="btn btn-primary btn-block" id="simVerify">Open the verification link</button>
+    <p class="muted" style="font-size:.85rem">Prototype: this button stands in for clicking the link in the email.</p>
+    <div class="actions" style="justify-content:center">
+      <button class="btn btn-ghost" id="resendVerify">Resend email</button>
+      <button class="btn btn-ghost" data-go="register">Use a different email</button>
+    </div>
+    <p class="muted" id="verStatus" role="status" style="font-size:.9rem"></p>
+  </div>
+</section>
+
+<!-- Forgot password -->
+<section data-view="forgot" class="auth" hidden aria-labelledby="fp-h">
+  <form class="card raised auth-card" id="forgotForm" novalidate>
+    <div class="auth-top"><button type="button" class="link-btn" data-go="login">&larr; Back to log in</button></div>
+    <div>
+      <h1 id="fp-h" style="font-size:1.7rem">Reset your password</h1>
+      <p class="muted" style="margin-top:6px">Enter your registration number. We email a reset link to the university address on your account.</p>
+    </div>
+    <div class="field" data-field="fReg">
+      <label for="fReg">Registration number <span class="req" aria-hidden="true">*</span></label>
+      <input class="input" id="fReg" placeholder="e.g. 2025/DSWE/DAY/0036/G" aria-describedby="fReg-err">
+      <p class="err" id="fReg-err"></p>
+    </div>
+    <button class="btn btn-primary btn-block" type="submit">Send reset link</button>
+  </form>
+</section>
+
+<!-- Reset link sent -->
+<section data-view="forgotsent" class="auth" hidden aria-labelledby="fs-h">
+  <div class="card raised auth-card" style="text-align:center;align-items:center">
+    <div class="tick" style="background:#E8EDF4"><svg viewBox="0 0 24 24" aria-hidden="true" style="stroke:#1F3A68"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 7l8.5 6 8.5-6"/></svg></div>
+    <h1 id="fs-h" style="font-size:1.7rem">Reset link sent</h1>
+    <p class="muted">If there is an account for <b id="fsReg" style="color:#121C2E"></b>, a reset link is on its way to the university email. It works for 30 minutes.</p>
+    <button class="btn btn-primary btn-block" id="simReset">Open the reset link</button>
+    <p class="muted" style="font-size:.85rem">Prototype: this button stands in for clicking the link in the email.</p>
+    <button class="btn btn-ghost" data-go="login">Back to log in</button>
+  </div>
+</section>
+
+<!-- Choose new password -->
+<section data-view="reset" class="auth" hidden aria-labelledby="rs-h">
+  <form class="card raised auth-card" id="resetForm" novalidate>
+    <div>
+      <h1 id="rs-h" style="font-size:1.7rem">Choose a new password</h1>
+      <p class="muted" style="margin-top:6px">Pick something you have not used on this account before.</p>
+    </div>
+    <div class="field" data-field="nPass">
+      <label for="nPass">New password <span class="req" aria-hidden="true">*</span></label>
+      <input class="input" id="nPass" type="password" data-pw autocomplete="new-password" aria-describedby="nPass-hint nPass-err">
+      <p class="hint" id="nPass-hint">At least 8 characters, with a letter and a number.</p>
+      <p class="err" id="nPass-err"></p>
+    </div>
+    <div class="field" data-field="nConfirm">
+      <label for="nConfirm">Confirm new password <span class="req" aria-hidden="true">*</span></label>
+      <input class="input" id="nConfirm" type="password" data-pw autocomplete="new-password" aria-describedby="nConfirm-err">
+      <p class="err" id="nConfirm-err"></p>
+    </div>
+    <label class="check"><input type="checkbox" class="showpw"><span>Show passwords</span></label>
+    <button class="btn btn-primary btn-block" type="submit">Save new password</button>
+  </form>
+</section>
+
+
+<!-- 1. LOGIN -->
+<section data-view="login" id="view-login" aria-labelledby="login-h">
+  <div class="login">
+    <div class="login-art">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H11v16H5.5A1.5 1.5 0 0 0 4 20.5v-16Zm9-1.5h5.5A1.5 1.5 0 0 1 20 4.5v16a1.5 1.5 0 0 0-1.5-1.5H13V3Z"/></svg></span>
+        University Digital Library
+      </div>
+      <div>
+        <h1>Find it. Request it. Collect it.</h1>
+        <p>Search the university catalogue from anywhere and reserve a copy before you walk to the library.</p>
+      </div>
+      <dl class="hours">
+        <dt>Mon – Fri</dt><dd>8:00 am – 8:00 pm</dd>
+        <dt>Saturday</dt><dd>9:00 am – 4:00 pm</dd>
+        <dt>Sunday</dt><dd>Closed</dd>
+      </dl>
+    </div>
+    <div class="login-form">
+      <form id="loginForm" novalidate>
+        <div>
+          <h2 id="login-h" style="font-size:1.6rem">Log in to your library account</h2>
+          <p class="muted" style="margin-top:6px">Use your student registration number.</p>
+        </div>
+        <div class="notice" id="loginNotice" role="status" hidden></div>
+        <div class="summary-err" id="loginErr" role="alert" hidden></div>
+        <div class="field" data-field="regNo">
+          <label for="regNo">Registration number <span class="req" aria-hidden="true">*</span></label>
+          <input class="input" id="regNo" name="regNo" autocomplete="username" placeholder="e.g. 2025/DSWE/DAY/0036/G" aria-describedby="regNo-err">
+          <p class="err" id="regNo-err"></p>
+        </div>
+        <div class="field" data-field="password">
+          <label for="password">Password <span class="req" aria-hidden="true">*</span></label>
+          <div class="pw">
+            <input class="input" id="password" name="password" type="password" autocomplete="current-password" aria-describedby="password-err" style="padding-right:84px">
+            <button type="button" class="btn btn-ghost toggle" id="togglePw" style="min-height:36px" aria-pressed="false">Show</button>
+          </div>
+          <p class="err" id="password-err"></p>
+          <button type="button" class="link-btn" data-go="forgot" style="font-size:.9rem;align-self:flex-start">Forgot your password?</button>
+        </div>
+        <button class="btn btn-primary btn-block" type="submit">Log in</button>
+        <div class="divider"><span>New to the library?</span></div>
+        <button class="btn btn-secondary btn-block" type="button" data-go="register">Create an account</button>
+        <button class="btn btn-ghost btn-block" type="button" data-go="search">Browse the catalogue without logging in</button>
+        <p class="muted" style="font-size:.85rem"><button type="button" class="link-btn" id="demoFill" style="font-size:inherit"></button></p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- 2. DASHBOARD -->
+<section data-view="dashboard" hidden aria-labelledby="dash-h">
+  <div class="wrap">
+    <div class="hello">
+      <p class="eyebrow" id="todayLabel"></p>
+      <h1 id="dash-h">Welcome back, Amina</h1>
+    </div>
+    <form class="search-hero" id="heroSearch" role="search">
+      <label for="heroQ" class="sr-only">Search the catalogue</label>
+      <input class="input" id="heroQ" type="search" placeholder="Search by title, author or topic, e.g. “database”" autocomplete="off">
+      <button class="btn btn-primary" type="submit">Search catalogue</button>
+    </form>
+
+    <div class="stats" id="stats"></div>
+
+    <div>
+      <div class="section-head"><h2>Browse by subject</h2></div>
+      <div class="chips" id="catChips"></div>
+    </div>
+
+    <div class="two-col">
+      <div>
+        <div class="section-head"><h2>Popular this week</h2><button class="link-btn" data-go="search">See all books</button></div>
+        <div class="shelf six" id="popular"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:24px">
+        <div class="card">
+          <div class="section-head" style="margin-bottom:12px"><h2>My requests</h2></div>
+          <div id="myRequests"></div>
+        </div>
+        <div class="card">
+          <div class="section-head" style="margin-bottom:12px"><h2>On loan</h2></div>
+          <ul class="list" id="onLoan"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 3. SEARCH -->
+<section data-view="search" hidden aria-labelledby="search-h">
+  <div class="wrap">
+    <h1 id="search-h">Search books</h1>
+    <div class="search-layout">
+      <form class="filters card" id="filters" role="search" onsubmit="return false">
+        <div class="field">
+          <label for="q">Title, author or topic</label>
+          <input class="input" id="q" type="search" autocomplete="off" placeholder="Search…">
+        </div>
+        <div class="field">
+          <label for="cat">Subject</label>
+          <select class="input" id="cat"></select>
+        </div>
+        <div class="field">
+          <label for="sort">Sort by</label>
+          <select class="input" id="sort">
+            <option value="rel">Best match</option>
+            <option value="title">Title A–Z</option>
+            <option value="year">Newest first</option>
+          </select>
+        </div>
+        <label class="check"><input type="checkbox" id="availOnly"><span>Available now only</span></label>
+        <button type="button" class="btn btn-secondary" id="clearFilters">Clear filters</button>
+      </form>
+      <div>
+        <div class="result-bar" style="margin-bottom:12px">
+          <p id="count" class="muted" role="status" aria-live="polite"></p>
+        </div>
+        <div class="results" id="results"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 4. DETAILS -->
+<section data-view="details" hidden aria-labelledby="det-h">
+  <div class="wrap" id="detailWrap"></div>
+</section>
+
+<!-- 5. REQUEST FORM -->
+<section data-view="request" hidden aria-labelledby="req-h">
+  <div class="wrap">
+    <div class="crumbs" id="reqCrumbs"></div>
+    <h1 id="req-h">Request to borrow</h1>
+    <div class="req-layout">
+      <form class="card raised" id="reqForm" novalidate>
+        <div class="summary-err" id="reqErr" role="alert" tabindex="-1" hidden style="margin-bottom:20px"></div>
+        <div class="form-grid">
+          <div class="field full" data-field="fullName">
+            <label for="fullName">Full name <span class="req" aria-hidden="true">*</span></label>
+            <input class="input" id="fullName" autocomplete="name" aria-describedby="fullName-err">
+            <p class="err" id="fullName-err"></p>
+          </div>
+          <div class="field" data-field="reqReg">
+            <label for="reqReg">Registration number <span class="req" aria-hidden="true">*</span></label>
+            <input class="input" id="reqReg" aria-describedby="reqReg-err">
+            <p class="err" id="reqReg-err"></p>
+          </div>
+          <div class="field" data-field="email">
+            <label for="email">University email <span class="req" aria-hidden="true">*</span></label>
+            <input class="input" id="email" type="email" autocomplete="email" placeholder="name@student.uict.ac.ug" aria-describedby="email-err">
+            <p class="err" id="email-err"></p>
+          </div>
+          <div class="field" data-field="phone">
+            <label for="phone">Phone number <span class="req" aria-hidden="true">*</span></label>
+            <input class="input" id="phone" type="tel" autocomplete="tel" placeholder="0772 123 456" aria-describedby="phone-hint phone-err">
+            <p class="hint" id="phone-hint">We text you when the book is ready.</p>
+            <p class="err" id="phone-err"></p>
+          </div>
+          <div class="field" data-field="loanPeriod">
+            <label for="loanPeriod">Loan period <span class="req" aria-hidden="true">*</span></label>
+            <select class="input" id="loanPeriod" aria-describedby="loanPeriod-err">
+              <option value="">Select a period</option>
+              <option value="7">7 days</option>
+              <option value="14">14 days</option>
+              <option value="21">21 days</option>
+            </select>
+            <p class="err" id="loanPeriod-err"></p>
+          </div>
+          <div class="field" data-field="pickupDate">
+            <label for="pickupDate">Pick-up date <span class="req" aria-hidden="true">*</span></label>
+            <input class="input" id="pickupDate" type="date" aria-describedby="pickupDate-hint pickupDate-err">
+            <p class="hint" id="pickupDate-hint">Tomorrow up to 14 days ahead. Closed on Sundays.</p>
+            <p class="err" id="pickupDate-err"></p>
+          </div>
+          <div class="field" data-field="pickupPoint">
+            <label for="pickupPoint">Pick-up point <span class="req" aria-hidden="true">*</span></label>
+            <select class="input" id="pickupPoint" aria-describedby="pickupPoint-err">
+              <option value="">Select a pick-up point</option>
+              <option>Main Library, circulation desk</option>
+              <option>Faculty of Computing annex</option>
+            </select>
+            <p class="err" id="pickupPoint-err"></p>
+          </div>
+          <div class="field full" data-field="notes">
+            <label for="notes">Note to the librarian <span class="muted" style="font-weight:400">(optional)</span></label>
+            <textarea class="input" id="notes" maxlength="200" aria-describedby="notes-hint" placeholder="For example: I need the 2018 edition for my research methods assignment."></textarea>
+            <p class="hint" id="notes-hint"><span id="notesCount">0</span> / 200 characters</p>
+          </div>
+          <div class="field full" data-field="terms">
+            <label class="check"><input type="checkbox" id="terms" aria-describedby="terms-err"><span>I will collect the book on the chosen date and return it by the due date. Late returns are fined per day.</span></label>
+            <p class="err" id="terms-err"></p>
+          </div>
+        </div>
+        <div class="actions" style="margin-top:24px">
+          <button class="btn btn-primary" type="submit">Submit request</button>
+          <button class="btn btn-secondary" type="button" id="reqBack">Back to book details</button>
+        </div>
+      </form>
+      <aside class="card" id="reqAside"></aside>
+    </div>
+  </div>
+</section>
+
+<!-- 6. CONFIRMATION -->
+<section data-view="confirm" hidden aria-labelledby="conf-h">
+  <div class="wrap" id="confirmWrap"></div>
+</section>
+
+</main>
+
+<footer class="wrap" id="foot" hidden>Prototype with a sample catalogue. Nothing you enter is sent anywhere or saved.</footer>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
